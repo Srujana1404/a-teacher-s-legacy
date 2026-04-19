@@ -7,10 +7,10 @@ export const LightLeak: React.FC = () => {
 
   // Slow drift across the screen
   const x1 = interpolate(frame, [0, 1500], [-200, 1920 + 200]);
-  const opacity1 = 0.18 + 0.08 * Math.sin(frame * 0.02);
+  const opacity1 = 0.07 + 0.03 * Math.sin(frame * 0.02);
 
   const x2 = interpolate(frame, [0, 1500], [1920 + 200, -300]);
-  const opacity2 = 0.12 + 0.06 * Math.sin(frame * 0.018 + 1.5);
+  const opacity2 = 0.05 + 0.02 * Math.sin(frame * 0.018 + 1.5);
 
   return (
     <AbsoluteFill style={{ pointerEvents: "none", mixBlendMode: "screen" }}>
