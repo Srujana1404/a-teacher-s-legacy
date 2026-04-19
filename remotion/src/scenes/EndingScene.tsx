@@ -15,8 +15,8 @@ export const EndingScene: React.FC = () => {
   const { durationInFrames, fps } = useVideoConfig();
   const progress = frame / durationInFrames;
 
-  // Slow pull back
-  const scale = interpolate(progress, [0, 1], [1.18, 1.05]);
+  // Slow gentle zoom
+  const scale = interpolate(progress, [0, 1], [1.05, 1.0]);
 
   // Caption 1: "ఇది ముగింపు కాదు…"
   const c1Opacity = interpolate(
@@ -50,11 +50,25 @@ export const EndingScene: React.FC = () => {
 
   return (
     <AbsoluteFill style={{ backgroundColor: "#1a0f08" }}>
+      {/* Blurred backdrop */}
+      <AbsoluteFill>
+        <Img
+          src={staticFile("images/photo1.jpeg")}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            filter: "blur(40px) brightness(0.5) saturate(1.2)",
+            transform: "scale(1.15)",
+          }}
+        />
+      </AbsoluteFill>
+
       {/* Hero portrait (photo1 again for emotional bookend) */}
       <AbsoluteFill
         style={{
           transform: `scale(${scale})`,
-          transformOrigin: "center 35%",
+          transformOrigin: "center center",
         }}
       >
         <Img
@@ -62,7 +76,7 @@ export const EndingScene: React.FC = () => {
           style={{
             width: "100%",
             height: "100%",
-            objectFit: "cover",
+            objectFit: "contain",
             filter: "saturate(0.95) contrast(1.05) brightness(0.95)",
           }}
         />
