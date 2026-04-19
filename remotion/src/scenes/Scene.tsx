@@ -12,75 +12,95 @@ import { TELUGU } from "../fonts";
 
 interface SceneProps {
   imageSrc: string;
+  bgSrc: string;
   captionLine1: string;
   captionLine2: string;
   kenBurnsDirection: "in" | "out";
-  panX: number; // -1, 0, or 1
+  panX: number;
+  // accent label shown small at top (English chapter marker)
+  chapterLabel?: string;
 }
 
 export const Scene: React.FC<SceneProps> = ({
   imageSrc,
+  bgSrc,
   captionLine1,
   captionLine2,
   kenBurnsDirection,
   panX,
+  chapterLabel,
 }) => {
   const frame = useCurrentFrame();
   const { durationInFrames, fps } = useVideoConfig();
 
-  // Ken Burns: gentle so face stays in frame for portrait photos
   const progress = frame / durationInFrames;
   const scale =
     kenBurnsDirection === "in"
-      ? interpolate(progress, [0, 1], [1.0, 1.08])
-      : interpolate(progress, [0, 1], [1.08, 1.0]);
+      ? interpolate(progress, [0, 1], [1.0, 1.07])
+      : interpolate(progress, [0, 1], [1.07, 1.0]);
 
-  const translateX = interpolate(progress, [0, 1], [panX * -20, panX * 20]);
-  const translateY = interpolate(progress, [0, 1], [-6, 6]);
+  const translateX = interpolate(progress, [0, 1], [panX * -18, panX * 18]);
+  const translateY = interpolate(progress, [0, 1], [-5, 5]);
 
-  // Caption animations
+  // Chapter label
+  const chapterOpacity = interpolate(
+    frame,
+    [10, 35, durationInFrames - 30, durationInFrames - 10],
+    [0, 1, 1, 0],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
+  );
+
+  // Caption 1
   const cap1Opacity = interpolate(
     frame,
-    [30, 50, durationInFrames - 40, durationInFrames - 20],
+    [25, 50, durationInFrames - 30, durationInFrames - 10],
     [0, 1, 1, 0],
     { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
   );
   const cap1Y = interpolate(
-    spring({ frame: frame - 30, fps, config: { damping: 200 } }),
+    spring({ frame: frame - 25, fps, config: { damping: 200 } }),
     [0, 1],
-    [20, 0]
+    [22, 0]
   );
 
-  const cap2Delay = 70;
+  // Caption 2 (delayed)
+  const cap2Delay = 65;
   const cap2Opacity = interpolate(
     frame,
-    [cap2Delay, cap2Delay + 20, durationInFrames - 40, durationInFrames - 20],
+    [cap2Delay, cap2Delay + 22, durationInFrames - 30, durationInFrames - 10],
     [0, 1, 1, 0],
     { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
   );
   const cap2Y = interpolate(
     spring({ frame: frame - cap2Delay, fps, config: { damping: 200 } }),
     [0, 1],
-    [20, 0]
+    [22, 0]
+  );
+
+  // Divider line draws in
+  const dividerScale = interpolate(
+    spring({ frame: frame - 15, fps, config: { damping: 200, mass: 1.2 } }),
+    [0, 1],
+    [0, 1]
   );
 
   return (
     <AbsoluteFill>
-      {/* Blurred backdrop fill so portrait photos don't crop */}
+      {/* Pre-blurred backdrop (cheap, no runtime blur) */}
       <AbsoluteFill>
         <Img
-          src={staticFile(imageSrc)}
+          src={staticFile(bgSrc)}
           style={{
             width: "100%",
             height: "100%",
             objectFit: "cover",
-            filter: "blur(45px) brightness(0.55) saturate(1.2)",
-            transform: "scale(1.18)",
+            filter: "brightness(0.45) saturate(1.15)",
+            transform: "scale(1.1)",
           }}
         />
       </AbsoluteFill>
 
-      {/* Image with Ken Burns - contained */}
+      {/* Main image, contained, with Ken Burns */}
       <AbsoluteFill
         style={{
           transform: `scale(${scale}) translate(${translateX}px, ${translateY}px)`,
@@ -93,49 +113,84 @@ export const Scene: React.FC<SceneProps> = ({
             width: "100%",
             height: "100%",
             objectFit: "contain",
-            filter: "saturate(1.05) contrast(1.05) brightness(1.02)",
+            filter: "saturate(1.05) contrast(1.04) brightness(1.02)",
           }}
         />
       </AbsoluteFill>
 
-      {/* Warm color grading overlay */}
+      {/* Subtle warm wash on top */}
       <AbsoluteFill
         style={{
           background:
-            "linear-gradient(180deg, rgba(255,180,90,0.10) 0%, rgba(120,40,10,0.15) 100%)",
+            "linear-gradient(180deg, rgba(255,180,90,0.06) 0%, rgba(120,40,10,0.10) 100%)",
           mixBlendMode: "overlay",
         }}
       />
 
-      {/* Bottom gradient for caption legibility */}
+      {/* Top + bottom darken bands for text legibility */}
       <AbsoluteFill
         style={{
           background:
-            "linear-gradient(180deg, rgba(0,0,0,0) 55%, rgba(0,0,0,0.75) 100%)",
+            "linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0) 18%, rgba(0,0,0,0) 60%, rgba(0,0,0,0.85) 100%)",
         }}
       />
 
-      {/* Captions */}
+      {/* Chapter label (top) */}
+      {chapterLabel && (
+        <div
+          style={{
+            position: "absolute",
+            top: 60,
+            left: 0,
+            right: 0,
+            textAlign: "center",
+            fontFamily: "Cormorant, serif",
+            fontWeight: 400,
+            fontSize: 28,
+            color: "#ffd98a",
+            letterSpacing: 12,
+            textTransform: "uppercase",
+            opacity: chapterOpacity,
+            textShadow: "0 2px 12px rgba(0,0,0,0.7)",
+          }}
+        >
+          {chapterLabel}
+        </div>
+      )}
+
+      {/* Bottom captions area */}
       <AbsoluteFill
         style={{
           justifyContent: "flex-end",
           alignItems: "center",
-          paddingBottom: 110,
+          paddingBottom: 90,
         }}
       >
+        {/* Golden divider */}
+        <div
+          style={{
+            width: 180,
+            height: 1,
+            background:
+              "linear-gradient(90deg, transparent, rgba(255,217,138,0.85), transparent)",
+            transform: `scaleX(${dividerScale})`,
+            marginBottom: 32,
+          }}
+        />
         <div
           style={{
             fontFamily: TELUGU,
             fontWeight: 600,
-            fontSize: 64,
+            fontSize: 60,
             color: "#fff5e0",
             textAlign: "center",
             opacity: cap1Opacity,
             transform: `translateY(${cap1Y}px)`,
-            textShadow: "0 4px 20px rgba(0,0,0,0.7)",
+            textShadow: "0 4px 24px rgba(0,0,0,0.85), 0 2px 6px rgba(0,0,0,0.6)",
             marginBottom: 18,
             lineHeight: 1.3,
             letterSpacing: 0.5,
+            maxWidth: 1500,
           }}
         >
           {captionLine1}
@@ -144,13 +199,14 @@ export const Scene: React.FC<SceneProps> = ({
           style={{
             fontFamily: TELUGU,
             fontWeight: 400,
-            fontSize: 50,
+            fontSize: 46,
             color: "#fde7c2",
             textAlign: "center",
             opacity: cap2Opacity,
             transform: `translateY(${cap2Y}px)`,
-            textShadow: "0 3px 16px rgba(0,0,0,0.65)",
+            textShadow: "0 3px 18px rgba(0,0,0,0.85), 0 2px 6px rgba(0,0,0,0.6)",
             lineHeight: 1.35,
+            maxWidth: 1500,
           }}
         >
           {captionLine2}
