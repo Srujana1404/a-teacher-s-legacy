@@ -28,16 +28,15 @@ export const Scene: React.FC<SceneProps> = ({
   const frame = useCurrentFrame();
   const { durationInFrames, fps } = useVideoConfig();
 
-  // Ken Burns: 8s scene = 240 frames. Slow zoom from 1.05 -> 1.18 or vice versa
+  // Ken Burns: gentle so face stays in frame for portrait photos
   const progress = frame / durationInFrames;
   const scale =
     kenBurnsDirection === "in"
-      ? interpolate(progress, [0, 1], [1.08, 1.22])
-      : interpolate(progress, [0, 1], [1.22, 1.08]);
+      ? interpolate(progress, [0, 1], [1.0, 1.08])
+      : interpolate(progress, [0, 1], [1.08, 1.0]);
 
-  // Subtle pan
-  const translateX = interpolate(progress, [0, 1], [panX * -30, panX * 30]);
-  const translateY = interpolate(progress, [0, 1], [-10, 10]);
+  const translateX = interpolate(progress, [0, 1], [panX * -20, panX * 20]);
+  const translateY = interpolate(progress, [0, 1], [-6, 6]);
 
   // Caption animations
   const cap1Opacity = interpolate(
@@ -67,7 +66,21 @@ export const Scene: React.FC<SceneProps> = ({
 
   return (
     <AbsoluteFill>
-      {/* Image with Ken Burns */}
+      {/* Blurred backdrop fill so portrait photos don't crop */}
+      <AbsoluteFill>
+        <Img
+          src={staticFile(imageSrc)}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            filter: "blur(45px) brightness(0.55) saturate(1.2)",
+            transform: "scale(1.18)",
+          }}
+        />
+      </AbsoluteFill>
+
+      {/* Image with Ken Burns - contained */}
       <AbsoluteFill
         style={{
           transform: `scale(${scale}) translate(${translateX}px, ${translateY}px)`,
@@ -79,7 +92,7 @@ export const Scene: React.FC<SceneProps> = ({
           style={{
             width: "100%",
             height: "100%",
-            objectFit: "cover",
+            objectFit: "contain",
             filter: "saturate(1.05) contrast(1.05) brightness(1.02)",
           }}
         />
