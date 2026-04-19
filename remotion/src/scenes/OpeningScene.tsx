@@ -15,8 +15,8 @@ export const OpeningScene: React.FC = () => {
   const { durationInFrames, fps } = useVideoConfig();
   const progress = frame / durationInFrames;
 
-  // Featured photo - main portrait. Slow zoom in.
-  const scale = interpolate(progress, [0, 1], [1.1, 1.25]);
+  // Featured photo - main portrait. Very gentle zoom (photo is portrait orientation).
+  const scale = interpolate(progress, [0, 1], [1.0, 1.08]);
 
   // Caption 1: appears, then fades
   const c1Opacity = interpolate(
@@ -46,11 +46,25 @@ export const OpeningScene: React.FC = () => {
 
   return (
     <AbsoluteFill style={{ backgroundColor: "#1a0f08" }}>
+      {/* Blurred backdrop fill (so portrait photo doesn't crop) */}
+      <AbsoluteFill>
+        <Img
+          src={staticFile("images/photo1.jpeg")}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            filter: "blur(40px) brightness(0.55) saturate(1.2)",
+            transform: "scale(1.15)",
+          }}
+        />
+      </AbsoluteFill>
+
       {/* Featured image (photo1 = main smiling portrait) */}
       <AbsoluteFill
         style={{
           transform: `scale(${scale})`,
-          transformOrigin: "center 35%",
+          transformOrigin: "center center",
         }}
       >
         <Img
@@ -58,7 +72,7 @@ export const OpeningScene: React.FC = () => {
           style={{
             width: "100%",
             height: "100%",
-            objectFit: "cover",
+            objectFit: "contain",
             filter: "saturate(1.05) contrast(1.05) brightness(1.0)",
           }}
         />
