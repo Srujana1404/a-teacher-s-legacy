@@ -6,7 +6,6 @@ import {
   useCurrentFrame,
   useVideoConfig,
   interpolate,
-  Sequence,
 } from "remotion";
 import {
   TransitionSeries,
@@ -16,6 +15,7 @@ import { fade } from "@remotion/transitions/fade";
 import { Scene } from "./scenes/Scene";
 import { OpeningScene } from "./scenes/OpeningScene";
 import { EndingScene } from "./scenes/EndingScene";
+import { TitleCard } from "./scenes/TitleCard";
 import { Particles } from "./components/Particles";
 import { Vignette } from "./components/Vignette";
 import { LightLeak } from "./components/LightLeak";
@@ -24,42 +24,53 @@ export const FPS = 30;
 export const WIDTH = 1920;
 export const HEIGHT = 1080;
 
-// Scene durations (in frames at 30fps)
-const TRANS = 25; // crossfade frames
-const OPEN_DUR = 180; // 6s opening
-const SCENE_DUR = 240; // 8s per photo scene
-const END_DUR = 240; // 8s ending
+const TRANS = 22; // crossfade frames
 
-// 1 opening + 5 photo scenes + 1 ending = 7 scenes
-// Total raw = 180 + 5*240 + 240 = 1620
-// Transitions overlap: 6 transitions * 25 = -150
-// Total = 1470 frames = 49s
+// Scene durations
+const OPEN_DUR = 195;       // 6.5s
+const TITLE_DUR = 110;      // 3.7s chapter cards
+const SCENE_DUR = 195;      // 6.5s per photo
+const END_DUR = 380;        // 12.7s tribute card
+
+// Story:
+// 1. Opening (portrait)            195
+// 2. Chapter 1: Beginning          110
+// 3. Photo - young teacher         195
+// 4. Chapter 2: Teaching Journey   110
+// 5. Photo - teaching/colleague    195
+// 6. Photo - leadership/promotions 195
+// 7. Chapter 3: Legacy             110
+// 8. Photo - festive/recognition   195
+// 9. Photo - elegant portrait      195
+// 10. Ending tribute               380
+
+const NUM_TRANS = 9;
 export const TOTAL_FRAMES =
-  OPEN_DUR + 5 * SCENE_DUR + END_DUR - 6 * TRANS;
+  OPEN_DUR +
+  TITLE_DUR + SCENE_DUR +
+  TITLE_DUR + SCENE_DUR + SCENE_DUR +
+  TITLE_DUR + SCENE_DUR + SCENE_DUR +
+  END_DUR -
+  NUM_TRANS * TRANS;
 
-const photos = [
-  { src: "images/photo3.jpeg", captions: ["కేవలం ఒక ఉద్యోగం కాదు…", "ఒక బాధ్యతగా ప్రారంభమైన మార్గం"] }, // Beginning
-  { src: "images/photo6.jpeg", captions: ["విద్యను మాత్రమే కాదు…", "విలువలను కూడా నేర్పిన గురువు"] }, // Teaching (with student/colleague)
-  { src: "images/photo2.jpeg", captions: ["కృషి… అంకిత భావం…", "విజయాలకు మార్గం చూపాయి"] }, // Growth
-  { src: "images/photo4.jpeg", captions: ["ఆమె బోధన… తరాలకు ప్రేరణ", "విద్యార్థుల హృదయాల్లో ఎప్పటికీ"] }, // Legacy
-  { src: "images/photo5.jpeg", captions: ["గురువు కాదు… మార్గదర్శి", "వేలాది జీవితాల్లో వెలుగు"] }, // Impact
-];
+// total = 195 + 110+195 + 110+195+195 + 110+195+195 + 380 - 9*22
+//       = 195 + 305 + 500 + 500 + 380 - 198
+//       = 1880 - 198 = 1682 frames @ 30fps = 56.07s
 
 export const MainVideo: React.FC = () => {
   const frame = useCurrentFrame();
   const { durationInFrames } = useVideoConfig();
 
-  // Audio fade out at the end
   const audioVolume = interpolate(
     frame,
-    [0, 30, durationInFrames - 60, durationInFrames],
-    [0, 1, 1, 0],
+    [0, 45, durationInFrames - 90, durationInFrames],
+    [0, 0.85, 0.85, 0],
     { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
   );
 
   return (
     <AbsoluteFill style={{ backgroundColor: "#1a0f08" }}>
-      {/* Background warm gradient (persistent) */}
+      {/* Persistent warm ambient bg */}
       <AbsoluteFill
         style={{
           background:
@@ -67,37 +78,105 @@ export const MainVideo: React.FC = () => {
         }}
       />
 
-      {/* Music */}
       <Audio src={staticFile("audio/piano.mp3")} volume={audioVolume} />
 
-      {/* Scene sequence with cross-dissolves */}
       <TransitionSeries>
         <TransitionSeries.Sequence durationInFrames={OPEN_DUR}>
           <OpeningScene />
         </TransitionSeries.Sequence>
+        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: TRANS })} />
 
-        <TransitionSeries.Transition
-          presentation={fade()}
-          timing={linearTiming({ durationInFrames: TRANS })}
-        />
+        <TransitionSeries.Sequence durationInFrames={TITLE_DUR}>
+          <TitleCard
+            eyebrow="Chapter One"
+            teluguTitle="ప్రయాణం మొదలవుతుంది"
+            englishSub="The Journey Begins"
+          />
+        </TransitionSeries.Sequence>
+        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: TRANS })} />
 
-        {photos.map((p, i) => (
-          <React.Fragment key={i}>
-            <TransitionSeries.Sequence durationInFrames={SCENE_DUR}>
-              <Scene
-                imageSrc={p.src}
-                captionLine1={p.captions[0]}
-                captionLine2={p.captions[1]}
-                kenBurnsDirection={i % 2 === 0 ? "in" : "out"}
-                panX={i % 3 === 0 ? -1 : i % 3 === 1 ? 1 : 0}
-              />
-            </TransitionSeries.Sequence>
-            <TransitionSeries.Transition
-              presentation={fade()}
-              timing={linearTiming({ durationInFrames: TRANS })}
-            />
-          </React.Fragment>
-        ))}
+        <TransitionSeries.Sequence durationInFrames={SCENE_DUR}>
+          <Scene
+            imageSrc="images/photo3.jpeg"
+            bgSrc="images/bg_photo3.jpeg"
+            chapterLabel="Beginning"
+            captionLine1="కేవలం ఒక ఉద్యోగం కాదు…"
+            captionLine2="ఒక బాధ్యతగా ప్రారంభమైన మార్గం"
+            kenBurnsDirection="in"
+            panX={-1}
+          />
+        </TransitionSeries.Sequence>
+        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: TRANS })} />
+
+        <TransitionSeries.Sequence durationInFrames={TITLE_DUR}>
+          <TitleCard
+            eyebrow="Chapter Two"
+            teluguTitle="బోధన… మార్గదర్శనం"
+            englishSub="Teaching · Guiding · Inspiring"
+          />
+        </TransitionSeries.Sequence>
+        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: TRANS })} />
+
+        <TransitionSeries.Sequence durationInFrames={SCENE_DUR}>
+          <Scene
+            imageSrc="images/photo6.jpeg"
+            bgSrc="images/bg_photo6.jpeg"
+            chapterLabel="Teaching"
+            captionLine1="విద్యను మాత్రమే కాదు…"
+            captionLine2="విలువలను కూడా నేర్పిన గురువు"
+            kenBurnsDirection="out"
+            panX={0}
+          />
+        </TransitionSeries.Sequence>
+        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: TRANS })} />
+
+        <TransitionSeries.Sequence durationInFrames={SCENE_DUR}>
+          <Scene
+            imageSrc="images/photo2.jpeg"
+            bgSrc="images/bg_photo2.jpeg"
+            chapterLabel="Growth"
+            captionLine1="కృషి… అంకిత భావం…"
+            captionLine2="విజయాలకు మార్గం చూపాయి"
+            kenBurnsDirection="in"
+            panX={1}
+          />
+        </TransitionSeries.Sequence>
+        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: TRANS })} />
+
+        <TransitionSeries.Sequence durationInFrames={TITLE_DUR}>
+          <TitleCard
+            eyebrow="Chapter Three"
+            teluguTitle="తరాలకు ప్రేరణ"
+            englishSub="A Legacy of Light"
+          />
+        </TransitionSeries.Sequence>
+        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: TRANS })} />
+
+        <TransitionSeries.Sequence durationInFrames={SCENE_DUR}>
+          <Scene
+            imageSrc="images/photo4.jpeg"
+            bgSrc="images/bg_photo4.jpeg"
+            chapterLabel="Inspiration"
+            captionLine1="ఆమె బోధన… తరాలకు ప్రేరణ"
+            captionLine2="విద్యార్థుల హృదయాల్లో ఎప్పటికీ"
+            kenBurnsDirection="out"
+            panX={-1}
+          />
+        </TransitionSeries.Sequence>
+        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: TRANS })} />
+
+        <TransitionSeries.Sequence durationInFrames={SCENE_DUR}>
+          <Scene
+            imageSrc="images/photo5.jpeg"
+            bgSrc="images/bg_photo5.jpeg"
+            chapterLabel="Legacy"
+            captionLine1="గురువు కాదు… మార్గదర్శి"
+            captionLine2="వేలాది జీవితాల్లో వెలుగు"
+            kenBurnsDirection="in"
+            panX={1}
+          />
+        </TransitionSeries.Sequence>
+        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: TRANS })} />
 
         <TransitionSeries.Sequence durationInFrames={END_DUR}>
           <EndingScene />
