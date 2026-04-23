@@ -24,33 +24,17 @@ export const FPS = 30;
 export const WIDTH = 1920;
 export const HEIGHT = 1080;
 
-const TRANS = 24;
+const TRANS = 30;
 
-// Durations
-const OPEN_DUR = 195;       // 6.5s opening
-const TITLE_DUR = 110;      // 3.7s chapter card
-const SCENE_DUR = 195;      // 6.5s photo scene
-const NARR_DUR = 165;       // 5.5s AI narrative scene
-const QUOTE_DUR = 195;      // 6.5s quote card
-const END_DUR = 400;        // 13.3s ending
+// Durations — slowed down for a calm, dignified read
+const OPEN_DUR = 360;       // 12s opening
+const TITLE_DUR = 195;      // 6.5s chapter card
+const SCENE_DUR = 360;      // 12s photo scene
+const NARR_DUR = 300;       // 10s AI narrative scene
+const QUOTE_DUR = 330;      // 11s quote card
+const END_DUR = 540;        // 18s ending
 
-// Story flow (15 segments):
-//  1. Opening (sunrise + portrait)
-//  2. Quote: "Teaching is the noblest profession"
-//  3. Chapter 1: The Beginning
-//  4. Narrative: empty classroom (where it began)
-//  5. Photo: young teacher (photo3)
-//  6. Chapter 2: Teaching · Guiding
-//  7. Narrative: blackboard (lessons given)
-//  8. Photo: teaching (photo6)
-//  9. Photo: growth/leadership (photo2)
-// 10. Narrative: students walking (impact)
-// 11. Chapter 3: A Legacy of Light
-// 12. Photo: festive/inspiration (photo4)
-// 13. Photo: elegant portrait (photo5)
-// 14. Narrative: diya (the eternal flame she lit)
-// 15. Ending tribute (sunset + name)
-
+// Story flow (15 segments) — same structure, more breathing room.
 const NUM_TRANS = 14;
 export const TOTAL_FRAMES =
   OPEN_DUR +
@@ -61,8 +45,8 @@ export const TOTAL_FRAMES =
   END_DUR -
   NUM_TRANS * TRANS;
 
-// = 195+195 + 110+165+195 + 110+165+195+195+165 + 110+195+195+165 + 400 - 336
-// = 2755 - 336 = 2419 frames @ 30fps = ~80.6s
+// = 360+330 + 195+300+360 + 195+300+360+360+300 + 195+360+360+300 + 540 - 420
+// = 4815 - 420 = 4395 frames @ 30fps = ~146.5s (~2:26)
 
 export const MainVideo: React.FC = () => {
   const frame = useCurrentFrame();
@@ -70,8 +54,8 @@ export const MainVideo: React.FC = () => {
 
   const audioVolume = interpolate(
     frame,
-    [0, 60, durationInFrames - 120, durationInFrames],
-    [0, 0.75, 0.75, 0],
+    [0, 90, durationInFrames - 150, durationInFrames],
+    [0, 0.78, 0.78, 0],
     { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
   );
 
@@ -85,7 +69,8 @@ export const MainVideo: React.FC = () => {
         }}
       />
 
-      <Audio src={staticFile("audio/piano.mp3")} volume={audioVolume} />
+      {/* Uplifting hopeful piano — Kevin MacLeod "Inspired" (CC-BY) */}
+      <Audio src={staticFile("audio/inspired.mp3")} volume={audioVolume} />
 
       <TransitionSeries>
         {/* 1. Opening */}
@@ -136,6 +121,7 @@ export const MainVideo: React.FC = () => {
             captionLine2="ఒక బాధ్యతగా ప్రారంభమైన మార్గం"
             kenBurnsDirection="in"
             panX={-1}
+            focusY={0.18}
           />
         </TransitionSeries.Sequence>
         <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: TRANS })} />
@@ -163,7 +149,7 @@ export const MainVideo: React.FC = () => {
         </TransitionSeries.Sequence>
         <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: TRANS })} />
 
-        {/* 8. Photo: teaching */}
+        {/* 8. Photo: teaching (with colleague) */}
         <TransitionSeries.Sequence durationInFrames={SCENE_DUR}>
           <Scene
             imageSrc="images/photo6.jpeg"
@@ -173,11 +159,12 @@ export const MainVideo: React.FC = () => {
             captionLine2="విలువలను కూడా నేర్పిన గురువు"
             kenBurnsDirection="out"
             panX={0}
+            focusY={0.28}
           />
         </TransitionSeries.Sequence>
         <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: TRANS })} />
 
-        {/* 9. Photo: growth */}
+        {/* 9. Photo: dedication */}
         <TransitionSeries.Sequence durationInFrames={SCENE_DUR}>
           <Scene
             imageSrc="images/photo2.jpeg"
@@ -187,6 +174,7 @@ export const MainVideo: React.FC = () => {
             captionLine2="విజయాలకు మార్గం చూపాయి"
             kenBurnsDirection="in"
             panX={1}
+            focusY={0.18}
           />
         </TransitionSeries.Sequence>
         <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: TRANS })} />
@@ -224,6 +212,7 @@ export const MainVideo: React.FC = () => {
             captionLine2="విద్యార్థుల హృదయాల్లో ఎప్పటికీ"
             kenBurnsDirection="out"
             panX={-1}
+            focusY={0.16}
           />
         </TransitionSeries.Sequence>
         <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: TRANS })} />
@@ -238,6 +227,7 @@ export const MainVideo: React.FC = () => {
             captionLine2="వేలాది జీవితాల్లో వెలుగు"
             kenBurnsDirection="in"
             panX={1}
+            focusY={0.20}
           />
         </TransitionSeries.Sequence>
         <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: TRANS })} />
@@ -261,7 +251,7 @@ export const MainVideo: React.FC = () => {
         </TransitionSeries.Sequence>
       </TransitionSeries>
 
-      {/* Soft ambient particles only — no light leaks, no dark vignette */}
+      {/* Soft ambient particles */}
       <Particles />
     </AbsoluteFill>
   );

@@ -24,6 +24,7 @@ const bundled = await bundle({
 
 const browser = await openBrowser("chrome", {
   browserExecutable: "/bin/chromium",
+  chromeMode: "chrome-for-testing",
   chromiumOptions: { args: ["--no-sandbox", "--disable-gpu", "--disable-dev-shm-usage"] },
 });
 
