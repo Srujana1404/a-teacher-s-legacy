@@ -10,14 +10,14 @@ import {
 } from "remotion";
 import { TELUGU, SERIF } from "../fonts";
 
+// Opening: full-bleed AI sunrise + portrait card sliding in, no harsh dark bands
 export const OpeningScene: React.FC = () => {
   const frame = useCurrentFrame();
   const { durationInFrames, fps } = useVideoConfig();
   const progress = frame / durationInFrames;
 
-  const scale = interpolate(progress, [0, 1], [1.0, 1.06]);
+  const bgScale = interpolate(progress, [0, 1], [1.0, 1.08]);
 
-  // "WITH GRATITUDE" eyebrow
   const eyebrowOpacity = interpolate(
     frame,
     [10, 35, durationInFrames - 25, durationInFrames - 5],
@@ -25,33 +25,41 @@ export const OpeningScene: React.FC = () => {
     { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
   );
 
-  // Telugu line 1
+  const portraitSpring = spring({
+    frame: frame - 35,
+    fps,
+    config: { damping: 22, stiffness: 80 },
+  });
+  const portraitOp = interpolate(frame, [35, 70], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
+  const portraitY = interpolate(portraitSpring, [0, 1], [40, 0]);
+
   const c1Opacity = interpolate(
     frame,
-    [40, 70, durationInFrames - 25, durationInFrames - 5],
+    [70, 100, durationInFrames - 25, durationInFrames - 5],
     [0, 1, 1, 0],
     { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
   );
   const c1Y = interpolate(
-    spring({ frame: frame - 40, fps, config: { damping: 200 } }),
+    spring({ frame: frame - 70, fps, config: { damping: 200 } }),
     [0, 1],
-    [25, 0]
+    [22, 0]
   );
 
-  // Telugu line 2
   const c2Opacity = interpolate(
     frame,
-    [110, 140, durationInFrames - 25, durationInFrames - 5],
+    [120, 150, durationInFrames - 25, durationInFrames - 5],
     [0, 1, 1, 0],
     { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
   );
   const c2Y = interpolate(
-    spring({ frame: frame - 110, fps, config: { damping: 200 } }),
+    spring({ frame: frame - 120, fps, config: { damping: 200 } }),
     [0, 1],
-    [25, 0]
+    [22, 0]
   );
 
-  // Divider
   const divScale = interpolate(
     spring({ frame: frame - 25, fps, config: { damping: 200 } }),
     [0, 1],
@@ -60,52 +68,38 @@ export const OpeningScene: React.FC = () => {
 
   return (
     <AbsoluteFill style={{ backgroundColor: "#1a0f08" }}>
-      {/* Blurred backdrop */}
-      <AbsoluteFill>
-        <Img
-          src={staticFile("images/bg_photo1.jpeg")}
-          style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-            filter: "brightness(0.45) saturate(1.2)",
-            transform: "scale(1.15)",
-          }}
-        />
-      </AbsoluteFill>
-
-      {/* Main portrait */}
+      {/* Cinematic AI sunrise backdrop */}
       <AbsoluteFill
         style={{
-          transform: `scale(${scale})`,
+          transform: `scale(${bgScale})`,
           transformOrigin: "center center",
         }}
       >
         <Img
-          src={staticFile("images/photo1.jpeg")}
+          src={staticFile("images/ai_sunset.jpeg")}
           style={{
             width: "100%",
             height: "100%",
-            objectFit: "contain",
-            filter: "saturate(1.05) contrast(1.05) brightness(1.0)",
+            objectFit: "cover",
+            filter: "brightness(0.85) saturate(1.1)",
           }}
         />
       </AbsoluteFill>
 
-      {/* Strong dark gradient for caption */}
+      {/* Soft warm wash */}
       <AbsoluteFill
         style={{
           background:
-            "linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.05) 30%, rgba(0,0,0,0.05) 55%, rgba(0,0,0,0.92) 100%)",
+            "linear-gradient(180deg, rgba(255,170,80,0.10) 0%, rgba(140,60,15,0.20) 100%)",
+          mixBlendMode: "overlay",
         }}
       />
 
-      {/* Warm wash */}
+      {/* Subtle bottom wash for legibility */}
       <AbsoluteFill
         style={{
           background:
-            "linear-gradient(180deg, rgba(255,170,80,0.10) 0%, rgba(140,60,15,0.16) 100%)",
-          mixBlendMode: "overlay",
+            "linear-gradient(180deg, rgba(0,0,0,0) 55%, rgba(20,8,2,0.55) 100%)",
         }}
       />
 
@@ -119,23 +113,62 @@ export const OpeningScene: React.FC = () => {
           textAlign: "center",
           fontFamily: SERIF,
           fontWeight: 400,
-          fontSize: 30,
+          fontSize: 28,
           color: "#ffd98a",
           letterSpacing: 14,
           textTransform: "uppercase",
           opacity: eyebrowOpacity,
-          textShadow: "0 2px 14px rgba(0,0,0,0.85)",
         }}
       >
         A Tribute
       </div>
 
-      {/* Bottom captions */}
-      <AbsoluteFill
+      {/* Portrait framed card center-top */}
+      <div
         style={{
-          justifyContent: "flex-end",
+          position: "absolute",
+          top: 130,
+          left: 0,
+          right: 0,
+          display: "flex",
+          justifyContent: "center",
+          opacity: portraitOp,
+          transform: `translateY(${portraitY}px)`,
+        }}
+      >
+        <div
+          style={{
+            width: 460,
+            height: 580,
+            background: "rgba(255, 245, 224, 0.06)",
+            border: "1px solid rgba(255, 217, 138, 0.45)",
+            padding: 12,
+            boxShadow: "0 18px 50px rgba(0,0,0,0.5)",
+            overflow: "hidden",
+          }}
+        >
+          <Img
+            src={staticFile("images/photo1.jpeg")}
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              filter: "saturate(1.05) contrast(1.05)",
+            }}
+          />
+        </div>
+      </div>
+
+      {/* Bottom captions */}
+      <div
+        style={{
+          position: "absolute",
+          left: 0,
+          right: 0,
+          bottom: 80,
+          display: "flex",
+          flexDirection: "column",
           alignItems: "center",
-          paddingBottom: 90,
         }}
       >
         <div
@@ -145,20 +178,19 @@ export const OpeningScene: React.FC = () => {
             background:
               "linear-gradient(90deg, transparent, rgba(255,217,138,0.9), transparent)",
             transform: `scaleX(${divScale})`,
-            marginBottom: 36,
+            marginBottom: 28,
           }}
         />
         <div
           style={{
             fontFamily: TELUGU,
             fontWeight: 600,
-            fontSize: 58,
+            fontSize: 50,
             color: "#fff5e0",
             textAlign: "center",
             opacity: c1Opacity,
             transform: `translateY(${c1Y}px)`,
-            textShadow: "0 4px 24px rgba(0,0,0,0.9)",
-            marginBottom: 22,
+            marginBottom: 14,
             lineHeight: 1.3,
           }}
         >
@@ -168,18 +200,17 @@ export const OpeningScene: React.FC = () => {
           style={{
             fontFamily: TELUGU,
             fontWeight: 700,
-            fontSize: 50,
+            fontSize: 40,
             color: "#ffd98a",
             textAlign: "center",
             opacity: c2Opacity,
             transform: `translateY(${c2Y}px)`,
-            textShadow: "0 4px 24px rgba(0,0,0,0.9)",
             lineHeight: 1.3,
           }}
         >
-          ఒక ఉపాధ్యాయురాలి అందమైన<br />ప్రయాణానికి మన వందనాలు
+          ఒక ఉపాధ్యాయురాలి అందమైన ప్రయాణానికి మన వందనాలు
         </div>
-      </AbsoluteFill>
+      </div>
     </AbsoluteFill>
   );
 };
