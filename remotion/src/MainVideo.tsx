@@ -16,46 +16,53 @@ import { Scene } from "./scenes/Scene";
 import { OpeningScene } from "./scenes/OpeningScene";
 import { EndingScene } from "./scenes/EndingScene";
 import { TitleCard } from "./scenes/TitleCard";
+import { NarrativeScene } from "./scenes/NarrativeScene";
+import { QuoteCard } from "./scenes/QuoteCard";
 import { Particles } from "./components/Particles";
-import { Vignette } from "./components/Vignette";
-import { LightLeak } from "./components/LightLeak";
 
 export const FPS = 30;
 export const WIDTH = 1920;
 export const HEIGHT = 1080;
 
-const TRANS = 22; // crossfade frames
+const TRANS = 24;
 
-// Scene durations
-const OPEN_DUR = 195;       // 6.5s
-const TITLE_DUR = 110;      // 3.7s chapter cards
-const SCENE_DUR = 195;      // 6.5s per photo
-const END_DUR = 380;        // 12.7s tribute card
+// Durations
+const OPEN_DUR = 195;       // 6.5s opening
+const TITLE_DUR = 110;      // 3.7s chapter card
+const SCENE_DUR = 195;      // 6.5s photo scene
+const NARR_DUR = 165;       // 5.5s AI narrative scene
+const QUOTE_DUR = 195;      // 6.5s quote card
+const END_DUR = 400;        // 13.3s ending
 
-// Story:
-// 1. Opening (portrait)            195
-// 2. Chapter 1: Beginning          110
-// 3. Photo - young teacher         195
-// 4. Chapter 2: Teaching Journey   110
-// 5. Photo - teaching/colleague    195
-// 6. Photo - leadership/promotions 195
-// 7. Chapter 3: Legacy             110
-// 8. Photo - festive/recognition   195
-// 9. Photo - elegant portrait      195
-// 10. Ending tribute               380
+// Story flow (15 segments):
+//  1. Opening (sunrise + portrait)
+//  2. Quote: "Teaching is the noblest profession"
+//  3. Chapter 1: The Beginning
+//  4. Narrative: empty classroom (where it began)
+//  5. Photo: young teacher (photo3)
+//  6. Chapter 2: Teaching · Guiding
+//  7. Narrative: blackboard (lessons given)
+//  8. Photo: teaching (photo6)
+//  9. Photo: growth/leadership (photo2)
+// 10. Narrative: students walking (impact)
+// 11. Chapter 3: A Legacy of Light
+// 12. Photo: festive/inspiration (photo4)
+// 13. Photo: elegant portrait (photo5)
+// 14. Narrative: diya (the eternal flame she lit)
+// 15. Ending tribute (sunset + name)
 
-const NUM_TRANS = 9;
+const NUM_TRANS = 14;
 export const TOTAL_FRAMES =
   OPEN_DUR +
-  TITLE_DUR + SCENE_DUR +
-  TITLE_DUR + SCENE_DUR + SCENE_DUR +
-  TITLE_DUR + SCENE_DUR + SCENE_DUR +
+  QUOTE_DUR +
+  TITLE_DUR + NARR_DUR + SCENE_DUR +
+  TITLE_DUR + NARR_DUR + SCENE_DUR + SCENE_DUR + NARR_DUR +
+  TITLE_DUR + SCENE_DUR + SCENE_DUR + NARR_DUR +
   END_DUR -
   NUM_TRANS * TRANS;
 
-// total = 195 + 110+195 + 110+195+195 + 110+195+195 + 380 - 9*22
-//       = 195 + 305 + 500 + 500 + 380 - 198
-//       = 1880 - 198 = 1682 frames @ 30fps = 56.07s
+// = 195+195 + 110+165+195 + 110+165+195+195+165 + 110+195+195+165 + 400 - 336
+// = 2755 - 336 = 2419 frames @ 30fps = ~80.6s
 
 export const MainVideo: React.FC = () => {
   const frame = useCurrentFrame();
@@ -63,8 +70,8 @@ export const MainVideo: React.FC = () => {
 
   const audioVolume = interpolate(
     frame,
-    [0, 45, durationInFrames - 90, durationInFrames],
-    [0, 0.85, 0.85, 0],
+    [0, 60, durationInFrames - 120, durationInFrames],
+    [0, 0.75, 0.75, 0],
     { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
   );
 
@@ -81,11 +88,23 @@ export const MainVideo: React.FC = () => {
       <Audio src={staticFile("audio/piano.mp3")} volume={audioVolume} />
 
       <TransitionSeries>
+        {/* 1. Opening */}
         <TransitionSeries.Sequence durationInFrames={OPEN_DUR}>
           <OpeningScene />
         </TransitionSeries.Sequence>
         <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: TRANS })} />
 
+        {/* 2. Opening quote */}
+        <TransitionSeries.Sequence durationInFrames={QUOTE_DUR}>
+          <QuoteCard
+            teluguQuote="ఒక ఉపాధ్యాయురాలు… వేలాది దీపాలను వెలిగిస్తారు"
+            englishQuote="A teacher lights a thousand lamps that shine forever."
+            attribution="A Tribute"
+          />
+        </TransitionSeries.Sequence>
+        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: TRANS })} />
+
+        {/* 3. Chapter 1 */}
         <TransitionSeries.Sequence durationInFrames={TITLE_DUR}>
           <TitleCard
             eyebrow="Chapter One"
@@ -95,6 +114,19 @@ export const MainVideo: React.FC = () => {
         </TransitionSeries.Sequence>
         <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: TRANS })} />
 
+        {/* 4. AI: empty classroom */}
+        <TransitionSeries.Sequence durationInFrames={NARR_DUR}>
+          <NarrativeScene
+            bgSrc="images/ai_classroom.jpeg"
+            teluguLine="ఒక చిన్న తరగతి గది… ఒక పెద్ద కల"
+            englishLine="A small classroom · a great dream"
+            kenBurnsDirection="in"
+            panX={-1}
+          />
+        </TransitionSeries.Sequence>
+        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: TRANS })} />
+
+        {/* 5. Photo: young teacher */}
         <TransitionSeries.Sequence durationInFrames={SCENE_DUR}>
           <Scene
             imageSrc="images/photo3.jpeg"
@@ -108,15 +140,30 @@ export const MainVideo: React.FC = () => {
         </TransitionSeries.Sequence>
         <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: TRANS })} />
 
+        {/* 6. Chapter 2 */}
         <TransitionSeries.Sequence durationInFrames={TITLE_DUR}>
           <TitleCard
             eyebrow="Chapter Two"
             teluguTitle="బోధన… మార్గదర్శనం"
             englishSub="Teaching · Guiding · Inspiring"
+            bgImage="images/ai_blackboard.jpeg"
           />
         </TransitionSeries.Sequence>
         <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: TRANS })} />
 
+        {/* 7. AI: blackboard */}
+        <TransitionSeries.Sequence durationInFrames={NARR_DUR}>
+          <NarrativeScene
+            bgSrc="images/ai_blackboard.jpeg"
+            teluguLine="ప్రతి అక్షరం… ఒక ఆశీర్వాదం"
+            englishLine="Every word · a blessing"
+            kenBurnsDirection="out"
+            panX={1}
+          />
+        </TransitionSeries.Sequence>
+        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: TRANS })} />
+
+        {/* 8. Photo: teaching */}
         <TransitionSeries.Sequence durationInFrames={SCENE_DUR}>
           <Scene
             imageSrc="images/photo6.jpeg"
@@ -130,11 +177,12 @@ export const MainVideo: React.FC = () => {
         </TransitionSeries.Sequence>
         <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: TRANS })} />
 
+        {/* 9. Photo: growth */}
         <TransitionSeries.Sequence durationInFrames={SCENE_DUR}>
           <Scene
             imageSrc="images/photo2.jpeg"
             bgSrc="images/bg_photo2.jpeg"
-            chapterLabel="Growth"
+            chapterLabel="Dedication"
             captionLine1="కృషి… అంకిత భావం…"
             captionLine2="విజయాలకు మార్గం చూపాయి"
             kenBurnsDirection="in"
@@ -143,15 +191,30 @@ export const MainVideo: React.FC = () => {
         </TransitionSeries.Sequence>
         <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: TRANS })} />
 
+        {/* 10. AI: students walking */}
+        <TransitionSeries.Sequence durationInFrames={NARR_DUR}>
+          <NarrativeScene
+            bgSrc="images/ai_students.jpeg"
+            teluguLine="ఆమె నేర్పిన పాఠాలు… వేలాది జీవితాలను మార్చాయి"
+            englishLine="Her lessons shaped a thousand lives"
+            kenBurnsDirection="in"
+            panX={0}
+          />
+        </TransitionSeries.Sequence>
+        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: TRANS })} />
+
+        {/* 11. Chapter 3 */}
         <TransitionSeries.Sequence durationInFrames={TITLE_DUR}>
           <TitleCard
             eyebrow="Chapter Three"
             teluguTitle="తరాలకు ప్రేరణ"
             englishSub="A Legacy of Light"
+            bgImage="images/ai_diya.jpeg"
           />
         </TransitionSeries.Sequence>
         <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: TRANS })} />
 
+        {/* 12. Photo: inspiration */}
         <TransitionSeries.Sequence durationInFrames={SCENE_DUR}>
           <Scene
             imageSrc="images/photo4.jpeg"
@@ -165,6 +228,7 @@ export const MainVideo: React.FC = () => {
         </TransitionSeries.Sequence>
         <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: TRANS })} />
 
+        {/* 13. Photo: elegant */}
         <TransitionSeries.Sequence durationInFrames={SCENE_DUR}>
           <Scene
             imageSrc="images/photo5.jpeg"
@@ -178,15 +242,27 @@ export const MainVideo: React.FC = () => {
         </TransitionSeries.Sequence>
         <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: TRANS })} />
 
+        {/* 14. AI: diya */}
+        <TransitionSeries.Sequence durationInFrames={NARR_DUR}>
+          <NarrativeScene
+            bgSrc="images/ai_diya.jpeg"
+            teluguLine="ఒక దీపం… వేలాది దీపాలను వెలిగించింది"
+            englishLine="One flame · a thousand lights"
+            kenBurnsDirection="in"
+            panX={0}
+            bottomWash={0.4}
+          />
+        </TransitionSeries.Sequence>
+        <TransitionSeries.Transition presentation={fade()} timing={linearTiming({ durationInFrames: TRANS })} />
+
+        {/* 15. Ending tribute */}
         <TransitionSeries.Sequence durationInFrames={END_DUR}>
           <EndingScene />
         </TransitionSeries.Sequence>
       </TransitionSeries>
 
-      {/* Persistent overlays */}
+      {/* Soft ambient particles only — no light leaks, no dark vignette */}
       <Particles />
-      <LightLeak />
-      <Vignette />
     </AbsoluteFill>
   );
 };

@@ -10,17 +10,18 @@ import {
 } from "remotion";
 import { TELUGU, SERIF } from "../fonts";
 
+// Final tribute: warm sunset bg → portrait fades to side → name card emerges centered.
 export const EndingScene: React.FC = () => {
   const frame = useCurrentFrame();
   const { durationInFrames, fps } = useVideoConfig();
   const progress = frame / durationInFrames;
 
-  const scale = interpolate(progress, [0, 1], [1.04, 1.0]);
+  const bgScale = interpolate(progress, [0, 1], [1.0, 1.06]);
 
-  // Phase 1: Telugu farewell line (0-150)
-  const c1Opacity = interpolate(
+  // Phase 1 caption (0-150)
+  const c1Op = interpolate(
     frame,
-    [15, 40, 110, 140],
+    [15, 45, 130, 160],
     [0, 1, 1, 0],
     { extrapolateLeft: "clamp", extrapolateRight: "clamp" }
   );
@@ -30,122 +31,102 @@ export const EndingScene: React.FC = () => {
     [22, 0]
   );
 
-  // Phase 2: dark overlay grows (140-200)
-  const overlayOpacity = interpolate(frame, [140, 200], [0, 0.85], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
-
-  // Phase 3: tribute card appears (190+)
+  // Tribute card 180+
   const cardSpring = spring({
-    frame: frame - 195,
+    frame: frame - 180,
     fps,
     config: { damping: 22, stiffness: 90 },
   });
-  const cardOpacity = interpolate(frame, [195, 230], [0, 1], {
+  const cardOp = interpolate(frame, [180, 215], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
   const cardScale = interpolate(cardSpring, [0, 1], [0.94, 1]);
 
-  // Eyebrow on card
-  const eyebrowOp = interpolate(frame, [220, 250], [0, 1], {
+  const eyebrowOp = interpolate(frame, [205, 235], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
-  // Name
-  const nameOp = interpolate(frame, [240, 275], [0, 1], {
+  const nameOp = interpolate(frame, [225, 260], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
   const nameY = interpolate(
-    spring({ frame: frame - 240, fps, config: { damping: 200 } }),
+    spring({ frame: frame - 225, fps, config: { damping: 200 } }),
     [0, 1],
     [20, 0]
   );
-  // Date
-  const dateOp = interpolate(frame, [275, 305], [0, 1], {
+  const dateOp = interpolate(frame, [260, 290], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
-  // Final farewell
-  const finalOp = interpolate(frame, [310, 345], [0, 1], {
+  const finalOp = interpolate(frame, [295, 330], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
   const finalY = interpolate(
-    spring({ frame: frame - 310, fps, config: { damping: 200 } }),
+    spring({ frame: frame - 295, fps, config: { damping: 200 } }),
     [0, 1],
     [20, 0]
   );
 
   const dividerScale = interpolate(
-    spring({ frame: frame - 215, fps, config: { damping: 200, mass: 1.2 } }),
+    spring({ frame: frame - 200, fps, config: { damping: 200, mass: 1.2 } }),
     [0, 1],
     [0, 1]
   );
 
+  // overlay grows softly to focus on card
+  const overlayOp = interpolate(frame, [160, 210], [0, 0.55], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
+
   return (
     <AbsoluteFill style={{ backgroundColor: "#1a0f08" }}>
-      {/* Blurred backdrop */}
-      <AbsoluteFill>
-        <Img
-          src={staticFile("images/bg_photo1.jpeg")}
-          style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-            filter: "brightness(0.4) saturate(1.2)",
-            transform: "scale(1.15)",
-          }}
-        />
-      </AbsoluteFill>
-
-      {/* Hero portrait */}
+      {/* Sunset backdrop */}
       <AbsoluteFill
         style={{
-          transform: `scale(${scale})`,
+          transform: `scale(${bgScale})`,
           transformOrigin: "center center",
         }}
       >
         <Img
-          src={staticFile("images/photo1.jpeg")}
+          src={staticFile("images/ai_sunset.jpeg")}
           style={{
             width: "100%",
             height: "100%",
-            objectFit: "contain",
-            filter: "saturate(0.95) contrast(1.05) brightness(0.95)",
+            objectFit: "cover",
+            filter: "brightness(0.8) saturate(1.15)",
           }}
         />
       </AbsoluteFill>
 
-      {/* Sunset warm wash */}
       <AbsoluteFill
         style={{
           background:
-            "linear-gradient(180deg, rgba(255,140,60,0.18) 0%, rgba(180,70,20,0.28) 100%)",
+            "linear-gradient(180deg, rgba(255,140,60,0.12) 0%, rgba(180,70,20,0.22) 100%)",
           mixBlendMode: "overlay",
         }}
       />
 
-      {/* Phase 1 caption */}
+      {/* Phase 1 caption (centered) */}
       <AbsoluteFill
         style={{
-          justifyContent: "flex-end",
+          justifyContent: "center",
           alignItems: "center",
-          paddingBottom: 130,
         }}
       >
         <div
           style={{
             fontFamily: TELUGU,
             fontWeight: 600,
-            fontSize: 58,
+            fontSize: 56,
             color: "#fff5e0",
             textAlign: "center",
-            opacity: c1Opacity,
+            opacity: c1Op,
             transform: `translateY(${c1Y}px)`,
-            textShadow: "0 4px 24px rgba(0,0,0,0.9)",
+            textShadow: "0 4px 24px rgba(0,0,0,0.65)",
             lineHeight: 1.3,
           }}
         >
@@ -153,27 +134,27 @@ export const EndingScene: React.FC = () => {
         </div>
       </AbsoluteFill>
 
-      {/* Dark overlay for tribute card */}
-      <AbsoluteFill style={{ backgroundColor: `rgba(8,4,2,${overlayOpacity})` }} />
+      {/* Soft overlay to focus on card */}
+      <AbsoluteFill style={{ backgroundColor: `rgba(8,4,2,${overlayOp})` }} />
 
       {/* Tribute card */}
       <AbsoluteFill
         style={{
           justifyContent: "center",
           alignItems: "center",
-          opacity: cardOpacity,
+          opacity: cardOp,
           transform: `scale(${cardScale})`,
         }}
       >
-        <div style={{ textAlign: "center", padding: "60px 90px" }}>
+        <div style={{ textAlign: "center", padding: "40px 90px" }}>
           <div
             style={{
               fontFamily: SERIF,
               fontWeight: 400,
-              fontSize: 30,
+              fontSize: 28,
               color: "#ffd98a",
               letterSpacing: 14,
-              marginBottom: 30,
+              marginBottom: 24,
               textTransform: "uppercase",
               opacity: eyebrowOp,
             }}
@@ -188,7 +169,7 @@ export const EndingScene: React.FC = () => {
               background:
                 "linear-gradient(90deg, transparent, rgba(255,217,138,0.9), transparent)",
               transform: `scaleX(${dividerScale})`,
-              margin: "0 auto 40px",
+              margin: "0 auto 32px",
             }}
           />
 
@@ -196,11 +177,11 @@ export const EndingScene: React.FC = () => {
             style={{
               fontFamily: SERIF,
               fontWeight: 600,
-              fontSize: 96,
+              fontSize: 92,
               color: "#fff5e0",
               lineHeight: 1.05,
-              marginBottom: 22,
-              textShadow: "0 4px 28px rgba(0,0,0,0.6)",
+              marginBottom: 20,
+              textShadow: "0 4px 28px rgba(0,0,0,0.5)",
               opacity: nameOp,
               transform: `translateY(${nameY}px)`,
               letterSpacing: 1,
@@ -214,10 +195,10 @@ export const EndingScene: React.FC = () => {
               fontFamily: SERIF,
               fontStyle: "italic",
               fontWeight: 400,
-              fontSize: 38,
+              fontSize: 36,
               color: "#fde7c2",
               letterSpacing: 3,
-              marginBottom: 50,
+              marginBottom: 36,
               opacity: dateOp,
             }}
           >
@@ -231,7 +212,7 @@ export const EndingScene: React.FC = () => {
               background:
                 "linear-gradient(90deg, transparent, rgba(255,217,138,0.9), transparent)",
               transform: `scaleX(${dividerScale})`,
-              margin: "0 auto 40px",
+              margin: "0 auto 32px",
             }}
           />
 
@@ -239,7 +220,7 @@ export const EndingScene: React.FC = () => {
             style={{
               fontFamily: TELUGU,
               fontWeight: 600,
-              fontSize: 46,
+              fontSize: 42,
               color: "#ffe9b5",
               lineHeight: 1.4,
               opacity: finalOp,

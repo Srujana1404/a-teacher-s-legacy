@@ -1,6 +1,8 @@
 import React from "react";
 import {
   AbsoluteFill,
+  Img,
+  staticFile,
   useCurrentFrame,
   useVideoConfig,
   interpolate,
@@ -12,13 +14,15 @@ interface TitleCardProps {
   eyebrow: string;
   teluguTitle: string;
   englishSub?: string;
+  bgImage?: string; // optional AI image as soft backdrop
 }
 
-// Elegant chapter divider scene - cream parchment-like card on warm dark bg
+// Chapter divider — parchment/AI bg with elegant centered title
 export const TitleCard: React.FC<TitleCardProps> = ({
   eyebrow,
   teluguTitle,
   englishSub,
+  bgImage = "images/ai_parchment.jpeg",
 }) => {
   const frame = useCurrentFrame();
   const { durationInFrames, fps } = useVideoConfig();
@@ -57,12 +61,23 @@ export const TitleCard: React.FC<TitleCardProps> = ({
   );
 
   return (
-    <AbsoluteFill
-      style={{
-        background:
-          "radial-gradient(ellipse at 50% 50%, #4a2818 0%, #2b1810 55%, #120804 100%)",
-      }}
-    >
+    <AbsoluteFill>
+      <Img
+        src={staticFile(bgImage)}
+        style={{
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          filter: "brightness(0.65) saturate(1.05)",
+        }}
+      />
+      <AbsoluteFill
+        style={{
+          background:
+            "linear-gradient(180deg, rgba(20,8,2,0.45) 0%, rgba(20,8,2,0.55) 100%)",
+        }}
+      />
+
       <AbsoluteFill
         style={{
           justifyContent: "center",
@@ -73,12 +88,12 @@ export const TitleCard: React.FC<TitleCardProps> = ({
           style={{
             fontFamily: SERIF,
             fontWeight: 400,
-            fontSize: 30,
+            fontSize: 28,
             color: "#ffd98a",
             letterSpacing: 14,
             textTransform: "uppercase",
             opacity: eyebrowOpacity,
-            marginBottom: 50,
+            marginBottom: 40,
           }}
         >
           {eyebrow}
@@ -91,7 +106,7 @@ export const TitleCard: React.FC<TitleCardProps> = ({
             background:
               "linear-gradient(90deg, transparent, rgba(255,217,138,0.9), transparent)",
             transform: `scaleX(${dividerScale})`,
-            marginBottom: 50,
+            marginBottom: 40,
           }}
         />
 
@@ -99,14 +114,14 @@ export const TitleCard: React.FC<TitleCardProps> = ({
           style={{
             fontFamily: TELUGU,
             fontWeight: 700,
-            fontSize: 80,
+            fontSize: 78,
             color: "#fff5e0",
             textAlign: "center",
             opacity: titleOpacity,
             transform: `translateY(${titleY}px)`,
             lineHeight: 1.25,
             maxWidth: 1500,
-            textShadow: "0 4px 30px rgba(0,0,0,0.7)",
+            textShadow: "0 4px 30px rgba(0,0,0,0.55)",
           }}
         >
           {teluguTitle}
@@ -118,11 +133,11 @@ export const TitleCard: React.FC<TitleCardProps> = ({
               fontFamily: SERIF,
               fontStyle: "italic",
               fontWeight: 400,
-              fontSize: 36,
+              fontSize: 34,
               color: "#fde7c2",
               textAlign: "center",
               opacity: subOpacity,
-              marginTop: 40,
+              marginTop: 32,
               letterSpacing: 2,
             }}
           >
@@ -137,7 +152,7 @@ export const TitleCard: React.FC<TitleCardProps> = ({
             background:
               "linear-gradient(90deg, transparent, rgba(255,217,138,0.9), transparent)",
             transform: `scaleX(${dividerScale})`,
-            marginTop: 50,
+            marginTop: 40,
           }}
         />
       </AbsoluteFill>
