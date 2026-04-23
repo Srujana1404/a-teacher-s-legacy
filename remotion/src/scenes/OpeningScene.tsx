@@ -153,6 +153,7 @@ export const OpeningScene: React.FC = () => {
               width: "100%",
               height: "100%",
               objectFit: "cover",
+              objectPosition: "center 25%",
               filter: "saturate(1.05) contrast(1.05)",
             }}
           />
